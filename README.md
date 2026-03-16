@@ -20,6 +20,7 @@
   - [API Documentation](#api-documentation)
   - [Quality Checks](#quality-checks)
     - [AI-Assisted Pre-Commit Review](#ai-assisted-pre-commit-review-claude-code)
+    - [AI-Assisted Documentation](#ai-assisted-documentation-claude-code)
   - [Deploy](#deploy)
   - [Frontend (Administration Platform)](#frontend-administration-platform)
     - [Run frontend locally](#run-frontend-locally)
@@ -324,6 +325,22 @@ The skill will:
 - Call out **what looks good** to keep feedback balanced
 
 No GitHub CLI or open PR is required — it works entirely on your local diff.
+
+**AI-Assisted Documentation (Claude Code)**
+
+Generate or update Javadoc, inline comments, and README sections for your changes:
+
+```shell
+/documentation document my changes
+```
+
+The skill will:
+- Read each changed file before writing anything
+- Add or update Javadoc (`@param`, `@return`, `@throws`) on all public/protected members
+- Add inline comments only where logic is non-obvious
+- Follow the project's Javadoc conventions from `CLAUDE.md`
+
+See [docs/claude-code-skills.md](docs/claude-code-skills.md) for the full list of available AI skills and how to create new ones.
 
 **Other Quality Checks**
 

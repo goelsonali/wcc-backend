@@ -10,7 +10,7 @@ The canonical skills live in **`.ai/skills/`** and are written without any tool-
 
 | Agent | Adapter location | Invoke with |
 |-------|-----------------|-------------|
-| **Claude Code** | `.claude/skills/<name>/SKILL.md` | `/commit`, `/pr-review` |
+| **Claude Code** | `.claude/skills/<name>/SKILL.md` | `/commit`, `/pr-review`, `/pre-commit-review`, `/documentation` |
 | **OpenAI Codex** | `AGENTS.md` (repo root) | Natural language or slash commands |
 | **GitHub Copilot** | `.github/copilot-instructions.md` | Natural language in chat |
 | **Cursor** | `.cursor/rules/*.mdc` | Natural language or `@commit` rules |
@@ -83,6 +83,74 @@ Reviews a pull request using the GitHub CLI and posts inline comments directly o
 
 ---
 
+### `/pre-commit-review`
+
+**File:** `.claude/skills/pre-commit-review/SKILL.md`
+
+Reviews all staged and unstaged local changes before you commit, producing a structured report with severity-ranked findings per file.
+
+**What it does:**
+1. Runs `git status`, `git diff HEAD`, and `git diff --staged` to gather all local changes
+2. Reviews with a code-review mindset: regressions, security, data integrity, convention violations, missing tests
+3. Checks stack-specific conventions:
+   - **Java/Spring Boot**: Java 21 idioms, Spring Boot patterns, transaction handling, naming, Lombok alignment
+   - **Frontend (React/TypeScript)**: component boundaries, typing quality, state/effect hygiene
+   - **Tests**: Given-When-Then `@DisplayName` format, coverage of new logic paths, appropriate use of mocks
+4. Outputs an **overall summary** and **per-file findings** anchored to changed line numbers with severity levels:
+   - `[CRITICAL]` — must fix before committing
+   - `[WARNING]` — should fix
+   - `[INFO]` — optional improvement
+5. Calls out what looks good to keep feedback balanced
+
+**How to use:**
+```bash
+# In Claude Code, before committing your changes:
+/pre-commit-review
+```
+
+**Why this matters:**
+- Catches issues before they enter the commit history
+- No open PR or GitHub CLI required — works entirely on your local diff
+- Flags convention violations specific to this codebase
+- Gives balanced, motivating feedback to keep contributors engaged
+
+---
+
+### `/documentation`
+
+**File:** `.claude/skills/documentation/SKILL.md`
+
+Generates or updates documentation for changed or specified code — Javadoc, README sections, or inline comments — following project conventions.
+
+**What it does:**
+1. Identifies the scope from your request (specific files, recent changes, or a package)
+2. Reads each target file in full before writing anything — never guesses intent from names alone
+3. Checks existing documentation to update rather than duplicate
+4. Writes documentation following project conventions:
+   - **Javadoc**: `@param`, `@return`, `@throws` on all public/protected members; no `@author`/`@version`
+   - **Inline comments**: only where logic is non-obvious; explains *why*, not *what*
+   - **README/markdown**: imperative mood, code blocks for commands, consistent heading style
+5. Makes only documentation changes — never alters logic or renames identifiers
+
+**How to use:**
+```bash
+# Document specific files:
+/documentation MenteeService.java CycleStatus.java
+
+# Document your recent changes:
+/documentation document my changes
+
+# Update README or docs:
+/documentation update the README
+```
+
+**Why this matters:**
+- Keeps Javadoc consistent with the code as it evolves
+- Reduces onboarding friction by ensuring public APIs are self-documenting
+- Follows the project's Javadoc conventions from CLAUDE.md without manual cross-referencing
+
+---
+
 ## How to Create a New Skill
 
 ### 1. Write the canonical runbook in `.ai/skills/`
@@ -148,6 +216,15 @@ Skills are not just automation — they are a way to learn and build confidence 
 
 When you run `/commit`, Claude reads your diff and writes a commit message explaining *why* the change exists. Read that explanation. If it doesn't match what you intended, your code may not express your intent clearly. This is a fast feedback loop to improve how you communicate through code.
 
+### Learning with `/pre-commit-review`
+
+Before committing, run `/pre-commit-review` to get an instant code review on your local diff. Claude will:
+- Flag regressions, security issues, and convention violations specific to this codebase
+- Anchor findings to the exact changed line numbers so you know exactly where to look
+- Call out what looks good — feedback is balanced, not just critical
+
+Fix `[CRITICAL]` findings before committing; treat `[WARNING]` findings as strong guidance.
+
 ### Learning with `/pr-review`
 
 Before asking teammates to review your PR, run `/pr-review` on it yourself. Claude will:
@@ -157,10 +234,18 @@ Before asking teammates to review your PR, run `/pr-review` on it yourself. Clau
 
 Use the feedback to fix the PR, then submit it to your team. You will arrive at reviews already having addressed common issues — and you will learn the patterns faster because the feedback is immediate and contextual.
 
+### Learning with `/documentation`
+
+After implementing a feature or fixing a bug, run `/documentation document my changes` to generate Javadoc for everything you touched. Read what Claude writes — if the description is unclear or inaccurate, it is a signal that the code itself may need clarification. Documentation becomes a mirror for code quality.
+
 ### The learning loop
 
 ```
 Write code
+    ↓
+/pre-commit-review  →  Fix critical and warning findings locally
+    ↓
+/documentation  →  Document new public APIs and non-obvious logic
     ↓
 /commit  →  Read the "why" Claude drafted — does it match your intent?
     ↓
@@ -180,18 +265,22 @@ This loop is especially powerful when learning a new language or framework. You 
 ```
 .ai/
   skills/
-    commit.md           ← canonical commit workflow (any agent)
-    pr-review.md        ← canonical PR review workflow (any agent)
-  README.md             ← agent compatibility table
+    commit.md                ← canonical commit workflow (any agent)
+    pr-review.md             ← canonical PR review workflow (any agent)
+    pre-commit-review.md     ← canonical local diff review workflow (any agent)
+    documentation.md         ← canonical documentation workflow (any agent)
+  README.md                  ← agent compatibility table
 
-.claude/skills/         ← Claude Code adapters
+.claude/skills/              ← Claude Code adapters
   commit/SKILL.md
   pr-review/SKILL.md
+  pre-commit-review/SKILL.md
+  documentation/SKILL.md
 
-AGENTS.md               ← OpenAI Codex entry point
+AGENTS.md                    ← OpenAI Codex entry point
 .github/
-  copilot-instructions.md   ← GitHub Copilot instructions
-.cursor/rules/          ← Cursor rules
+  copilot-instructions.md    ← GitHub Copilot instructions
+.cursor/rules/               ← Cursor rules
   commit.mdc
   pr-review.mdc
 ```
