@@ -84,6 +84,8 @@ app:
 
 storage:
   type: local
+  google-drive:
+    credentials-json:
   folders:
     main-folder: folder-id
     resources-folder: folder-id
