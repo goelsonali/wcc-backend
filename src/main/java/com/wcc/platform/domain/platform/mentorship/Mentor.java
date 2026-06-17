@@ -45,6 +45,7 @@ public class Mentor extends Member {
   private String calendlyLink;
   private Boolean acceptMale;
   private Boolean acceptPromotion;
+  private String meetingLink;
 
   /** Mentor Constructor. */
   @SuppressWarnings("PMD.ExcessiveParameterList")
@@ -72,7 +73,8 @@ public class Mentor extends Member {
       final String calendlyLink,
       final Boolean acceptMale,
       final Boolean acceptPromotion,
-      final List<MemberType> memberTypes) {
+      final List<MemberType> memberTypes,
+      final String meetingLink) {
     super(
         id,
         fullName,
@@ -99,6 +101,13 @@ public class Mentor extends Member {
     this.calendlyLink = calendlyLink;
     this.acceptMale = acceptMale;
     this.acceptPromotion = acceptPromotion;
+    this.memberTypes = memberTypes;
+    this.meetingLink = meetingLink;
+  }
+
+  @Override
+  public void setMemberTypes(final List<MemberType> memberTypes) {
+    super.setMemberTypes(memberTypes);
     this.memberTypes = memberTypes;
   }
 
@@ -156,7 +165,8 @@ public class Mentor extends Member {
         .isWomen(mentor.getIsWomen())
         .calendlyLink(mentor.getCalendlyLink())
         .acceptMale(mentor.getAcceptMale())
-        .acceptPromotion(mentor.getAcceptPromotion());
+        .acceptPromotion(mentor.getAcceptPromotion())
+        .meetingLink(mentor.getMeetingLink());
   }
 
   /** Mentor Builder implementation to ensure proper inheritance. */
@@ -211,6 +221,11 @@ public class Mentor extends Member {
 
     public B acceptPromotion(final Boolean acceptPromotion) {
       this.acceptPromotion = acceptPromotion;
+      return (B) this;
+    }
+
+    public B meetingLink(final String meetingLink) {
+      this.meetingLink = meetingLink;
       return (B) this;
     }
 

@@ -98,6 +98,8 @@ public class MentorshipService {
               .calendlyLink(mentor.getCalendlyLink())
               .acceptMale(mentor.getAcceptMale())
               .acceptPromotion(mentor.getAcceptPromotion())
+              .meetingLink(mentor.getMeetingLink())
+              .memberTypes(mentor.getMemberTypes())
               .build();
 
       return mentorRepository.create(mentorWithExistingId);
@@ -217,6 +219,7 @@ public class MentorshipService {
         .calendlyLink(dto.getCalendlyLink())
         .acceptMale(dto.getAcceptMale())
         .acceptPromotion(dto.getAcceptPromotion())
+        .meetingLink(dto.getMeetingLink())
         .build();
   }
 
@@ -235,6 +238,7 @@ public class MentorshipService {
         .slackDisplayName(mentor.getSlackDisplayName())
         .country(mentor.getCountry())
         .city(mentor.getCity())
+        .memberTypes(mentor.getMemberTypes())
         .companyName(mentor.getCompanyName())
         .images(List.of(profilePicture.get()))
         .network(mentor.getNetwork())
@@ -251,6 +255,7 @@ public class MentorshipService {
         .calendlyLink(mentor.getCalendlyLink())
         .acceptMale(mentor.getAcceptMale())
         .acceptPromotion(mentor.getAcceptPromotion())
+        .meetingLink(mentor.getMeetingLink())
         .build();
   }
 

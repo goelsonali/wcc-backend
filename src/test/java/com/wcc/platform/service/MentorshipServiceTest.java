@@ -221,6 +221,7 @@ class MentorshipServiceTest {
     when(mentor.getCalendlyLink()).thenReturn("https://calendly.com/myname");
     when(mentor.getAcceptMale()).thenReturn(true);
     when(mentor.getAcceptPromotion()).thenReturn(false);
+    when(mentor.getMeetingLink()).thenReturn("https://google.com/meet/name");
 
     Member existingMember =
         Member.builder()
@@ -248,6 +249,7 @@ class MentorshipServiceTest {
     assertThat(captured.getAcceptPromotion()).isFalse();
     assertThat(captured.getSkills()).isEqualTo(skills);
     assertThat(captured.getMenteeSection()).isEqualTo(menteeSection);
+    assertThat(captured.getMeetingLink()).isEqualTo("https://google.com/meet/name");
   }
 
   @Test
