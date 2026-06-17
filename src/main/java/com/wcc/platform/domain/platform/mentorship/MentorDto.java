@@ -10,6 +10,7 @@ import com.wcc.platform.domain.exceptions.InvalidMentorException;
 import com.wcc.platform.domain.platform.SocialNetwork;
 import com.wcc.platform.domain.platform.member.MemberDto;
 import com.wcc.platform.domain.platform.member.ProfileStatus;
+import com.wcc.platform.domain.platform.type.MemberType;
 import com.wcc.platform.domain.resource.MentorResource;
 import io.micrometer.common.util.StringUtils;
 import jakarta.validation.constraints.Email;
@@ -17,18 +18,21 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 
 /** Represents the mentor members of the community. */
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @NoArgsConstructor
+@Validated
+@SuperBuilder(builderMethodName = "mentorDtoBuilder")
 @SuppressWarnings("PMD.ImmutableField")
 public class MentorDto extends MemberDto {
 
@@ -51,10 +55,10 @@ public class MentorDto extends MemberDto {
   private Boolean acceptMale;
   private Boolean acceptPromotion;
   private Boolean isWomen;
+  private String meetingLink;
 
   /** Mentor Builder. */
   @SuppressWarnings("PMD.ExcessiveParameterList")
-  @Builder(builderMethodName = "mentorDtoBuilder")
   public MentorDto(
       final Long id,
       @NotBlank final String fullName,
@@ -78,7 +82,8 @@ public class MentorDto extends MemberDto {
       final Boolean isWomen,
       final String calendlyLink,
       final Boolean acceptMale,
-      final Boolean acceptPromotion) {
+      final Boolean acceptPromotion,
+      final String meetingLink) {
     super(
         id,
         fullName,
@@ -88,7 +93,7 @@ public class MentorDto extends MemberDto {
         country,
         city,
         companyName,
-        null, // TODO to be fixe this will cleanup member types
+        List.of(MemberType.MENTOR),
         images,
         network,
         pronouns,
@@ -107,6 +112,7 @@ public class MentorDto extends MemberDto {
     this.acceptMale = acceptMale;
     this.acceptPromotion = acceptPromotion;
     this.isWomen = isWomen;
+    this.meetingLink = meetingLink;
   }
 
   /**
@@ -140,6 +146,7 @@ public class MentorDto extends MemberDto {
         .calendlyLink(getCalendlyLink())
         .acceptMale(getAcceptMale())
         .acceptPromotion(getAcceptPromotion())
+        .meetingLink(getMeetingLink())
         .build();
   }
 
@@ -180,6 +187,7 @@ public class MentorDto extends MemberDto {
         .calendlyLink(mergeString(this.getCalendlyLink(), mentor.getCalendlyLink()))
         .acceptMale(mergeNullable(this.getAcceptMale(), mentor.getAcceptMale()))
         .acceptPromotion(mergeNullable(this.getAcceptPromotion(), mentor.getAcceptPromotion()))
+        .meetingLink(mergeString(this.getMeetingLink(), mentor.getMeetingLink()))
         .build();
   }
 

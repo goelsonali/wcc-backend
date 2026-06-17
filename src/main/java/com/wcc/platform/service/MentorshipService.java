@@ -7,12 +7,14 @@ import com.wcc.platform.domain.cms.pages.mentorship.MentorsPage;
 import com.wcc.platform.domain.exceptions.DuplicatedMemberException;
 import com.wcc.platform.domain.exceptions.MemberNotFoundException;
 import com.wcc.platform.domain.exceptions.MentorStatusException;
+import com.wcc.platform.domain.platform.member.Member;
 import com.wcc.platform.domain.platform.member.ProfileStatus;
 import com.wcc.platform.domain.platform.mentorship.CycleStatus;
 import com.wcc.platform.domain.platform.mentorship.Mentor;
 import com.wcc.platform.domain.platform.mentorship.MentorDto;
 import com.wcc.platform.domain.platform.mentorship.MentorshipCycleEntity;
 import com.wcc.platform.domain.platform.mentorship.MentorshipType;
+import com.wcc.platform.domain.platform.type.MemberType;
 import com.wcc.platform.domain.platform.type.RoleType;
 import com.wcc.platform.domain.resource.MemberProfilePicture;
 import com.wcc.platform.domain.resource.Resource;
@@ -21,6 +23,7 @@ import com.wcc.platform.repository.MemberRepository;
 import com.wcc.platform.repository.MentorRepository;
 import com.wcc.platform.repository.MentorshipCycleRepository;
 import com.wcc.platform.utils.FiltersUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -50,7 +53,6 @@ public class MentorshipService {
   private final UserProvisionService userProvisionService;
   private final MemberProfilePictureRepository profilePicRepo;
   @Getter private final MentorshipNotificationService notificationService;
-  private final ResourceService resourceService;
 
   private static boolean isAdHocTypeFilter(final MentorAppliedFilters filters) {
     return filters != null
@@ -67,8 +69,17 @@ public class MentorshipService {
   public Mentor create(final Mentor mentor) {
     final var existingMember = memberRepository.findByEmail(mentor.getEmail());
 
+    final var memberTypeMentor = MemberType.MENTOR;
+    mentor.setMemberTypes(List.of(memberTypeMentor));
+
     if (existingMember.isPresent()) {
-      final var existingMemberId = existingMember.get().getId();
+      final Member member = existingMember.get();
+      final var memberTypes = new ArrayList<>(member.getMemberTypes());
+      if (!memberTypes.contains(memberTypeMentor)) {
+        memberTypes.add(memberTypeMentor);
+      }
+
+      final var existingMemberId = member.getId();
       final var mentorWithExistingId =
           Mentor.mentorBuilder()
               .id(existingMemberId)
@@ -78,6 +89,7 @@ public class MentorshipService {
               .slackDisplayName(mentor.getSlackDisplayName())
               .country(mentor.getCountry())
               .city(mentor.getCity())
+              .memberTypes(memberTypes)
               .companyName(mentor.getCompanyName())
               .images(mentor.getImages())
               .network(mentor.getNetwork())
@@ -94,6 +106,8 @@ public class MentorshipService {
               .calendlyLink(mentor.getCalendlyLink())
               .acceptMale(mentor.getAcceptMale())
               .acceptPromotion(mentor.getAcceptPromotion())
+              .meetingLink(mentor.getMeetingLink())
+              .memberTypes(mentor.getMemberTypes())
               .build();
 
       return mentorRepository.create(mentorWithExistingId);
@@ -105,6 +119,7 @@ public class MentorshipService {
         throw new DuplicatedMemberException(mentorExists.get().getEmail());
       }
     }
+
     validateMentorCommitment(mentor);
     final var mentorCreated = mentorRepository.create(mentor);
     if (mentorRepository.findById(mentorCreated.getId()).isPresent()) {
@@ -213,6 +228,7 @@ public class MentorshipService {
         .calendlyLink(dto.getCalendlyLink())
         .acceptMale(dto.getAcceptMale())
         .acceptPromotion(dto.getAcceptPromotion())
+        .meetingLink(dto.getMeetingLink())
         .build();
   }
 
@@ -231,6 +247,7 @@ public class MentorshipService {
         .slackDisplayName(mentor.getSlackDisplayName())
         .country(mentor.getCountry())
         .city(mentor.getCity())
+        .memberTypes(mentor.getMemberTypes())
         .companyName(mentor.getCompanyName())
         .images(List.of(profilePicture.get()))
         .network(mentor.getNetwork())
@@ -247,6 +264,7 @@ public class MentorshipService {
         .calendlyLink(mentor.getCalendlyLink())
         .acceptMale(mentor.getAcceptMale())
         .acceptPromotion(mentor.getAcceptPromotion())
+        .meetingLink(mentor.getMeetingLink())
         .build();
   }
 
