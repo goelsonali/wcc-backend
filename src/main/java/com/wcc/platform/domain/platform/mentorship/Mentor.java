@@ -108,13 +108,17 @@ public class Mentor extends Member {
 
   /**
    * Converts this Mentor entity and an optional active MentorshipCycle into a MentorDto
-   * representation.
+   * representation. For AD_HOC cycles the mentor's ad-hoc availability is filtered to only the
+   * entries whose month matches the cycle month, ensuring that mentors who declared availability
+   * for a different month are not incorrectly surfaced by the AD_HOC type filter.
    *
    * @param mentorshipCycle an optional MentorshipCycle representing the active mentorship cycle
-   * @return a MentorDto containing the mentor's details and availability information
+   * @return a MentorDto containing the mentor's details and cycle-scoped availability information
    */
   public MentorDto toDto(final MentorshipCycle mentorshipCycle) {
-    return buildFromMentor(this).build();
+    return buildFromMentor(this)
+        .menteeSection(menteeSection.toDtoForCycle(mentorshipCycle))
+        .build();
   }
 
   /**

@@ -149,6 +149,107 @@ class MentorshipServiceFilteringTest {
     assertTrue(result.mentors().isEmpty());
   }
 
+  @Test
+  @DisplayName(
+      "Given an open AD_HOC cycle for MAY with both a LONG_TERM mentor and an AD_HOC mentor "
+          + "available only in MARCH, when no filter is applied, "
+          + "then both mentors are returned")
+  void givenOpenAdHocCycleWhenNoFilterAppliedThenAllMentorsReturned() {
+    var longTermMentor =
+        buildMentor(
+            5L,
+            "Eve Black",
+            "Berlin",
+            "Initech",
+            3,
+            List.of(TechnicalArea.BACKEND),
+            List.of(CodeLanguage.JAVA),
+            List.of(MentorshipFocusArea.GROW_MID_TO_SENIOR),
+            List.of(MentorshipType.LONG_TERM),
+            Month.MAY);
+    var marchAdHocMentor =
+        buildMentor(
+            6L,
+            "Frank Hall",
+            "Berlin",
+            "Initech",
+            3,
+            List.of(TechnicalArea.BACKEND),
+            List.of(CodeLanguage.JAVA),
+            List.of(MentorshipFocusArea.GROW_MID_TO_SENIOR),
+            List.of(MentorshipType.AD_HOC),
+            Month.MARCH);
+    when(mentorRepository.getAll()).thenReturn(List.of(longTermMentor, marchAdHocMentor));
+
+    var result = service.getMentorsPage(mentorsPage, null);
+
+    assertEquals(2, result.mentors().size());
+    var adHocDto =
+        result.mentors().stream()
+            .filter(m -> m.getFullName().equals(marchAdHocMentor.getFullName()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(1, adHocDto.getMenteeSection().adHoc().size());
+    assertEquals(Month.MARCH, adHocDto.getMenteeSection().adHoc().getFirst().month());
+  }
+
+  @Test
+  @DisplayName(
+      "Given an AD_HOC cycle for MAY and a mentor whose adHoc availability is in JUNE "
+          + "when filtering by AD_HOC type, then that mentor is excluded")
+  void givenAdHocCycleIsMayWhenMentorNotAvailableInMayThenExcludFromResult() {
+    var marchMentor =
+        buildMentor(
+            3L,
+            "Carol Wu",
+            "Berlin",
+            "Initech",
+            3,
+            List.of(TechnicalArea.BACKEND),
+            List.of(CodeLanguage.JAVA),
+            List.of(MentorshipFocusArea.GROW_MID_TO_SENIOR),
+            List.of(MentorshipType.AD_HOC),
+            Month.JUNE);
+    when(mentorRepository.getAll()).thenReturn(List.of(marchMentor));
+
+    var filters =
+        new MentorAppliedFilters(
+            "", List.of(MentorshipType.AD_HOC), 0, List.of(), List.of(), List.of());
+
+    var result = service.getMentorsPage(mentorsPage, filters);
+
+    assertTrue(result.mentors().isEmpty());
+  }
+
+  @Test
+  @DisplayName(
+      "Given an AD_HOC cycle for MAY and a mentor whose adHoc availability includes MAY, "
+          + "when filtering by AD_HOC type, then that mentor is included")
+  void givenAdHocCycleForMayWhenMentorAvailableInMayThenIncludedInResult() {
+    var mentorAvailableInMay =
+        buildMentor(
+            4L,
+            "Dana Lee",
+            "Berlin",
+            "Initech",
+            3,
+            List.of(TechnicalArea.BACKEND),
+            List.of(CodeLanguage.JAVA),
+            List.of(MentorshipFocusArea.GROW_MID_TO_SENIOR),
+            List.of(MentorshipType.AD_HOC),
+            Month.MAY);
+    when(mentorRepository.getAll()).thenReturn(List.of(mentorAvailableInMay));
+
+    var filters =
+        new MentorAppliedFilters(
+            "", List.of(MentorshipType.AD_HOC), 0, List.of(), List.of(), List.of());
+
+    var result = service.getMentorsPage(mentorsPage, filters);
+
+    assertEquals(1, result.mentors().size());
+    assertEquals(mentorAvailableInMay.getFullName(), result.mentors().getFirst().getFullName());
+  }
+
   private Mentor buildMentor(
       final Long mentorId,
       final String name,
