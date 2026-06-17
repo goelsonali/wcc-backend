@@ -197,8 +197,8 @@ class MentorshipServiceFilteringTest {
   @DisplayName(
       "Given an AD_HOC cycle for MAY and a mentor whose adHoc availability is in JUNE "
           + "when filtering by AD_HOC type, then that mentor is excluded")
-  void givenAdHocCycleIsMayWhenMentorNotAvailableInMayThenExcludFromResult() {
-    var marchMentor =
+  void givenAdHocCycleIsMayWhenMentorNotAvailableInMayThenExcludedFromResult() {
+    var juneMentor =
         buildMentor(
             3L,
             "Carol Wu",
@@ -210,7 +210,7 @@ class MentorshipServiceFilteringTest {
             List.of(MentorshipFocusArea.GROW_MID_TO_SENIOR),
             List.of(MentorshipType.AD_HOC),
             Month.JUNE);
-    when(mentorRepository.getAll()).thenReturn(List.of(marchMentor));
+    when(mentorRepository.getAll()).thenReturn(List.of(juneMentor));
 
     var filters =
         new MentorAppliedFilters(
