@@ -6,6 +6,7 @@ import com.wcc.platform.domain.platform.mentorship.MentorshipType;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents the Mentee Section of the Mentorship Page.
@@ -65,7 +66,7 @@ public record MenteeSection(
       return toDto();
     }
     final List<MentorMonthAvailability> filteredAdHoc =
-        adHoc.stream().filter(a -> a.month() == cycle.month()).toList();
+        adHoc.stream().filter(a -> Objects.equals(a.month(), cycle.month())).toList();
     return new MenteeSection(idealMentee, additional, longTerm, filteredAdHoc);
   }
 }
