@@ -46,6 +46,7 @@ public class MentorMapper {
                 .companyName(member.getCompanyName())
                 .images(member.getImages())
                 .isWomen(member.getIsWomen())
+                .memberTypes(member.getMemberTypes())
                 .network(member.getNetwork()));
 
     final var skillsMentor = skillsRepository.findSkills(mentorId);
