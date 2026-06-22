@@ -188,6 +188,10 @@ public class MentorDto extends MemberDto {
         .acceptMale(mergeNullable(this.getAcceptMale(), mentor.getAcceptMale()))
         .acceptPromotion(mergeNullable(this.getAcceptPromotion(), mentor.getAcceptPromotion()))
         .meetingLink(mergeString(this.getMeetingLink(), mentor.getMeetingLink()))
+        .memberTypes(
+            mentor.getMemberTypes() != null && !mentor.getMemberTypes().isEmpty()
+                ? mentor.getMemberTypes()
+                : List.of(MemberType.MENTOR))
         .build();
   }
 

@@ -89,7 +89,7 @@ public class MemberDto extends MemberBase {
         .country(getCountry())
         .city(getCity())
         .companyName(getCompanyName())
-        .memberTypes(getMemberTypes())
+        .memberTypes(getMemberTypes() != null ? getMemberTypes() : member.getMemberTypes())
         .images(getImages())
         .network(getNetwork())
         .pronouns(getPronouns())

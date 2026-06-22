@@ -17,6 +17,7 @@ import com.wcc.platform.domain.platform.member.Member;
 import com.wcc.platform.domain.platform.member.ProfileStatus;
 import com.wcc.platform.domain.platform.mentorship.Mentor;
 import com.wcc.platform.domain.platform.mentorship.Skills;
+import com.wcc.platform.domain.platform.type.MemberType;
 import com.wcc.platform.repository.postgres.PostgresMemberRepository;
 import com.wcc.platform.repository.postgres.mentorship.PostgresMenteeSectionRepository;
 import com.wcc.platform.repository.postgres.mentorship.PostgresSkillRepository;
@@ -52,6 +53,7 @@ class MentorMapperTest {
     Member member = mock(Member.class);
     Skills skills = mock(Skills.class);
     MenteeSection menteeSection = mock(MenteeSection.class);
+    List<MemberType> memberTypes = List.of(MemberType.MENTOR);
 
     when(resultSet.getLong(COLUMN_MENTOR_ID)).thenReturn(mentorId);
     when(resultSet.getInt(COLUMN_PROFILE_STATUS)).thenReturn(1);
@@ -60,6 +62,7 @@ class MentorMapperTest {
     when(memberRepository.findById(mentorId)).thenReturn(Optional.of(member));
     when(skillsRepository.findSkills(mentorId)).thenReturn(Optional.of(skills));
     when(menteeSectionRepository.findByMentorId(mentorId)).thenReturn(Optional.of(menteeSection));
+    when(member.getMemberTypes()).thenReturn(memberTypes);
 
     Mentor mentor = mentorMapper.mapRowToMentor(resultSet);
 
@@ -70,6 +73,7 @@ class MentorMapperTest {
     assertEquals(mentor.getSkills(), skills);
     assertEquals("Experienced mentor", mentor.getBio());
     assertEquals(mentor.getMenteeSection(), menteeSection);
+    assertEquals(memberTypes, mentor.getMemberTypes());
   }
 
   @Test
