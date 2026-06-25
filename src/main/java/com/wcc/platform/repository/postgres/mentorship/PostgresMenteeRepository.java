@@ -187,7 +187,10 @@ public class PostgresMenteeRepository implements MenteeRepository {
   }
 
   private void updateMenteeDetails(final Mentee mentee, final Long memberId) {
-    final var profileStatus = mentee.getProfileStatus();
+    var profileStatus = mentee.getProfileStatus();
+    if (profileStatus == null) {
+      profileStatus = ProfileStatus.PENDING;
+    }
     final var skills = mentee.getSkills();
     jdbc.update(
         SQL_UPDATE_MENTEE,
