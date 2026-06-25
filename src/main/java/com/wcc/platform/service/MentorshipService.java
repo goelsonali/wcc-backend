@@ -13,6 +13,7 @@ import com.wcc.platform.domain.platform.mentorship.CycleStatus;
 import com.wcc.platform.domain.platform.mentorship.Mentor;
 import com.wcc.platform.domain.platform.mentorship.MentorDto;
 import com.wcc.platform.domain.platform.mentorship.MentorshipCycleEntity;
+import com.wcc.platform.domain.platform.mentorship.MentorshipType;
 import com.wcc.platform.domain.platform.type.MemberType;
 import com.wcc.platform.domain.platform.type.RoleType;
 import com.wcc.platform.domain.resource.MemberProfilePicture;
@@ -52,6 +53,13 @@ public class MentorshipService {
   private final UserProvisionService userProvisionService;
   private final MemberProfilePictureRepository profilePicRepo;
   @Getter private final MentorshipNotificationService notificationService;
+
+  private static boolean isAdHocTypeFilter(final MentorAppliedFilters filters) {
+    return filters != null
+        && filters.mentorshipTypes() != null
+        && !filters.mentorshipTypes().isEmpty()
+        && filters.mentorshipTypes().contains(MentorshipType.AD_HOC);
+  }
 
   /**
    * Create a mentor record.
@@ -130,7 +138,8 @@ public class MentorshipService {
       final MentorsPage mentorsPage, final MentorAppliedFilters filters) {
     final var currentCycle = getCurrentCycle();
 
-    final var mentors = FiltersUtil.applyFilters(getAllActiveMentors(currentCycle), filters);
+    final var cycleForConversion = isAdHocTypeFilter(filters) ? currentCycle : CLOSED_CYCLE;
+    final var mentors = FiltersUtil.applyFilters(getAllActiveMentors(cycleForConversion), filters);
 
     return mentorsPage.updateUpdate(
         currentCycle.toOpenCycleValue(), FiltersUtil.mentorshipAllFilters(), mentors);
