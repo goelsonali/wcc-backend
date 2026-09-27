@@ -19,6 +19,12 @@ public class PostgresUserTokenRepository implements UserTokenRepository {
       "INSERT INTO user_tokens (token, user_id, issued_at, expires_at, revoked) VALUES (?,?,?,?,?)";
   private static final String SQL_SELECT =
       "SELECT * FROM user_tokens WHERE token = ? AND revoked = FALSE AND expires_at > ?";
+  private static final String SQL_PRUNE_ACTIVE =
+      "UPDATE user_tokens SET revoked = TRUE "
+          + "WHERE user_id = ? AND revoked = FALSE AND expires_at > ? "
+          + "AND token NOT IN ("
+          + "SELECT token FROM user_tokens WHERE user_id = ? AND revoked = FALSE AND expires_at > ? "
+          + "ORDER BY issued_at DESC LIMIT ?)";
 
   private static final RowMapper<UserToken> ROW_MAPPER =
       new RowMapper<>() {
@@ -75,5 +81,11 @@ public class PostgresUserTokenRepository implements UserTokenRepository {
   public void revokeAllForUser(final Integer userId) {
     jdbc.update("UPDATE user_tokens SET revoked = TRUE WHERE user_id = ? AND revoked = FALSE",
         userId);
+  }
+
+  @Override
+  public void revokeOldestActiveTokens(
+      final Integer userId, final OffsetDateTime now, final int tokensToKeep) {
+    jdbc.update(SQL_PRUNE_ACTIVE, userId, now, userId, now, tokensToKeep);
   }
 }

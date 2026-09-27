@@ -51,6 +51,7 @@ class AuthServiceTest {
         new AuthService(
             userAccountRepository, userTokenRepository, memberRepository, passwordEncoder);
     ReflectionTestUtils.setField(authService, "tokenTtlMinutes", 60);
+    ReflectionTestUtils.setField(authService, "maxTokensPerUser", 5);
   }
 
   // ==================== findUserByEmail Tests ====================
@@ -110,6 +111,27 @@ class AuthServiceTest {
     assertTrue(result.isPresent());
     assertEquals(1, result.get().getUserId());
     assertFalse(result.get().isRevoked());
+    verify(userTokenRepository).revokeOldestActiveTokens(eq(1), any(OffsetDateTime.class), eq(4));
+  }
+
+  @Test
+  void shouldRevokeAllActiveTokensWhenCapIsOne() {
+    String email = "user@example.com";
+    String password = "password123";
+    String passwordHash = "hashed_password";
+
+    UserAccount userAccount =
+        new UserAccount(1, 1L, email, passwordHash, List.of(RoleType.ADMIN), true);
+
+    when(userAccountRepository.findByEmail(email)).thenReturn(Optional.of(userAccount));
+    when(passwordEncoder.matches(password, passwordHash)).thenReturn(true);
+    when(userTokenRepository.create(any(UserToken.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    ReflectionTestUtils.setField(authService, "maxTokensPerUser", 1);
+
+    authService.authenticateAndIssueToken(email, password);
+
+    verify(userTokenRepository).revokeOldestActiveTokens(eq(1), any(OffsetDateTime.class), eq(0));
   }
 
   @Test

@@ -56,6 +56,7 @@ security:
   enabled: true
   token:
     ttl-minutes: 60
+    max-active-per-user: 5
   api:
     key: local
 

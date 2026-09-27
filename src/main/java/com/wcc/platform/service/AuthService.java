@@ -55,6 +55,9 @@ public class AuthService {
   @Value("${security.token.ttl-minutes}")
   private int tokenTtlMinutes;
 
+  @Value("${security.token.max-active-per-user:5}")
+  private int maxTokensPerUser;
+
   public Optional<UserAccount> findUserByEmail(final String email) {
     return userAccountRepository.findByEmail(email.toLowerCase(Locale.ENGLISH));
   }
@@ -117,13 +120,17 @@ public class AuthService {
 
   /**
    * Authenticates a user based on the provided email and password and issues a token if successful.
-   * The token includes information such as issuance time and expiration time.
+   * The token includes information such as issuance time and expiration time. If the user already
+   * has {@code security.token.max-active-per-user} active tokens, the oldest ones are revoked so the
+   * new token brings the active count back to the cap; the login itself is never rejected because of
+   * the cap.
    *
    * @param email the email address of the user attempting to authenticate
    * @param password the plaintext password of the user attempting to authenticate
    * @return an {@code Optional<UserToken>} containing the issued token if authentication is
    *     successful, or an empty {@code Optional} if authentication fails
    */
+  @org.springframework.transaction.annotation.Transactional
   public Optional<UserToken> authenticateAndIssueToken(final String email, final String password) {
     final Optional<UserAccount> userOpt = userAccountRepository.findByEmail(email.toLowerCase(Locale.ENGLISH));
     if (userOpt.isEmpty()) {
@@ -169,6 +176,10 @@ public class AuthService {
     final String token = generateToken();
     final OffsetDateTime now = OffsetDateTime.now();
     final OffsetDateTime expires = now.plusMinutes(tokenTtlMinutes);
+
+    userTokenRepository.revokeOldestActiveTokens(
+        user.getId(), now, Math.max(maxTokensPerUser - 1, 0));
+
     final UserToken userToken =
         UserToken.builder()
             .token(token)
